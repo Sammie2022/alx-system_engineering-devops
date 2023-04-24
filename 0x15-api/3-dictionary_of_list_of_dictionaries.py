@@ -1,30 +1,29 @@
+
 #!/usr/bin/python3
-""" Script that uses JSONPlaceholder API to get information about employee """
+"""fetching json data from an api"""
+
 import json
 import requests
-import sys
 
 
 if __name__ == "__main__":
-    url = 'https://jsonplaceholder.typicode.com/'
-    user = '{}users'.format(url)
-    res = requests.get(user)
-    json_o = res.json()
-    d_task = {}
-    for user in json_o:
-        name = user.get('username')
-        userid = user.get('id')
-        todos = '{}todos?userId={}'.format(url, userid)
-        res = requests.get(todos)
-        tasks = res.json()
-        l_task = []
-        for task in tasks:
-            dict_task = {"username": name,
-                         "task": task.get('title'),
-                         "completed": task.get('completed')}
-            l_task.append(dict_task)
+    user_url = "https://jsonplaceholder.typicode.com/users/"
+    user_dict = requests.get(user_url).json()
+    file_name = "todo_all_employees.json"
+    my_dict = {}
 
-        d_task[str(userid)] = l_task
-    filename = 'todo_all_employees.json'
-    with open(filename, mode='w') as f:
-        json.dump(d_task, f)
+    for elem in user_dict:
+        name = elem.get("username")
+        user_id = str(elem.get("id"))
+        user_data = requests.get("{}{}/todos".format(user_url, user_id))
+        user_data = user_data.json()
+        my_dict[user_id] = []
+        for item in user_data:
+            inner_dict = {}
+            inner_dict["username"] = name
+            inner_dict["task"] = item.get("title")
+            inner_dict["completed"] = item.get("completed")
+            my_dict[user_id].append(inner_dict)
+
+    with open(file_name, 'w') as f:
+        json.dump(my_dict, f)
